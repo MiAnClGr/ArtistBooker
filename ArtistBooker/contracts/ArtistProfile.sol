@@ -3,21 +3,30 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "./PerformanceContract.sol";
+import "./ArtistFactory.sol";
 
 contract ArtistProfile {
 
     string public artistName;
-    address payable artistAddress;
+    address payable public artistAddress;
+    address public owner;
+    
 
     PerformanceContract[] public performanceContractArray;
     
-    constructor(string memory _artistName) {
+    constructor(string memory _artistName, address _owner) {
         artistName = _artistName;
-        artistAddress = payable(msg.sender);
+        artistAddress = payable(address(this));
+        owner = _owner;
     }
 
-    function createPerformanceContract(address venue) public {
-        PerformanceContract performanceContract = new PerformanceContract(artistAddress, venue);
+    modifier onlyOwner() {  
+        require(msg.sender == owner);
+        _;
+    }
+
+    function createPerformanceContract(address venue, string memory venueName, uint payment, uint time) public {
+        PerformanceContract performanceContract = new PerformanceContract(owner, artistAddress, venue, venueName, payment, time );
         performanceContractArray.push(performanceContract);
 
     }
@@ -33,5 +42,9 @@ contract ArtistProfile {
 
     function balance() public view returns(uint) {
         return address(this).balance;
+    }
+
+    function withdraw() onlyOwner public {
+        payable(owner).transfer(address(this).balance);
     }
 }
