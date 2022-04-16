@@ -12,18 +12,19 @@ contract PerformanceContract {
 
     uint payment;
     uint time;
-    bool agreed;
+    bool public agreed;
     
     string venueName;
     string artistName;
-    State currentState;
-    bool depositPaid;
+    State public currentState;
+    bool public depositPaid;
     uint agreementTime;
+    bool public performanceTimePassed;
 
     address owner;
 
     bool public hasArtistAgreed;
-    bool public hasVenueAgreed;
+    
     
     address payable public artist;
     address public venue; 
@@ -43,10 +44,14 @@ contract PerformanceContract {
 
    
 
-    constructor(address payable _artist, address _venue) {
+    constructor(address _owner, address payable _artist, address _venue, string memory _venueName, uint _payment, uint _time) {
         msg.sender == owner;
         venue = _venue;
         artist = _artist;
+        payment = _payment;
+        time = _time;
+        venueName = _venueName;
+        owner = _owner;
 
 
     }
@@ -64,38 +69,40 @@ contract PerformanceContract {
         _;
     }
 
- 
-
-    function bookingRequest(uint _payment, uint _time, string memory _venueName) onlyVenue public {
-    
-        payment = _payment;
-        time = block.timestamp + _time;
-        venueName = _venueName;
-        
-        
+    modifier onlyOwner() {  
+        require(msg.sender == owner);
+        _;
     }
+
 
   
     function payBookingDeposit() onlyVenue public payable {
         
         require(block.timestamp < (agreementTime + 86400)); // 24 hours to pay 
         require(msg.sender == venue);
-        require(msg.value == payment);
-       // require(currentState == State.notCompleted);
+        require(msg.value == payment / 2);
         require(agreed == true);
         depositPaid = true;
         emit bookingFeePaid(true);    
     }
 
 
-    function agreement() onlyArtist public {
+    function agreement() onlyOwner public {
         
-        //require(msg.sender == ArtistsbyAddress[artistName]);
         agreed = true;
         agreementTime = block.timestamp;
 
-        if(agreed && hasVenueAgreed) {
+        if(agreed) {
             currentState = State.bookingComplete;
+        }
+    }
+
+    function hasPerformanceTimePassed() public returns(bool){
+        if(block.timestamp > time){
+            performanceTimePassed = true;
+            return true;
+        }else{
+            return false;
         }
     }
 
@@ -107,6 +114,7 @@ contract PerformanceContract {
         require(depositPaid == true);
         require(currentState == State.bookingComplete);
         currentState = State.performanceCompleted;
+    
         
     }
 
@@ -125,14 +133,12 @@ contract PerformanceContract {
         
     }
 
-    function withdraw() onlyArtist public payable {
+    function getPaid() onlyOwner public payable {
 
-       
-        //require(msg.sender == ArtistsbyAddress[artistName]);
         require(depositPaid == true);
         require(block.timestamp >= time);
         require(currentState == State.performanceCompleted);
-        payable(msg.sender).transfer(payment);
+        payable(artist).transfer(address(this).balance);
        
         
     }
