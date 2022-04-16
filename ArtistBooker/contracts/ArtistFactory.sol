@@ -15,7 +15,9 @@ contract ArtistFactory {
 
     
     function createArtist(string memory _artistName) public {
-        ArtistProfile artistProfile = new ArtistProfile(_artistName);
+        address owner = msg.sender;
+        require(doesArtistExist[_artistName] == false, "Artist already Exists");
+        ArtistProfile artistProfile = new ArtistProfile(_artistName, owner);
         ArtistbyName[_artistName] = address(artistProfile);
         ArtistbyAddress[address(artistProfile)] = _artistName;
         doesArtistExist[_artistName] = true;
@@ -24,9 +26,15 @@ contract ArtistFactory {
 
 
 
-    function findArtistAddress(address _artist) public view returns(string memory) { 
+    function findArtistbyAddress(address _artist) public view returns(string memory) { 
         return ArtistbyAddress[_artist];
 
     }
+
+    function findArtistbyName(string memory _name) public view returns(address) {
+        return ArtistbyName[_name];
+    }
+
+
 
 }
