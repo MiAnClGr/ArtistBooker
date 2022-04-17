@@ -1,4 +1,4 @@
-# ArtistBooker-
+# ArtistBooker
 
 Hi,
 
