@@ -15,9 +15,10 @@ contract ArtistFactory {
 
     
     function createArtist(string memory _artistName) public {
-        address owner = msg.sender;
+      
         require(doesArtistExist[_artistName] == false, "Artist already Exists");
-        ArtistProfile artistProfile = new ArtistProfile(_artistName, owner);
+        
+        ArtistProfile artistProfile = new ArtistProfile(_artistName, msg.sender);
         ArtistbyName[_artistName] = address(artistProfile);
         ArtistbyAddress[address(artistProfile)] = _artistName;
         doesArtistExist[_artistName] = true;
